@@ -1,0 +1,330 @@
+<title>Inventario Perros CI</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Maqueta: pestaña Web (sidebar + contenido) y pestaña Móvil (marco de teléfono). Mostaza como acento, neutros pizarra. */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --fg:#1d2328; --muted:#5e6870; --line:#dde1dc;
+  --accent:#d9a400; --accent-fg:#1d2328; --ink:#26313a;
+  --ok:#2f7d4f; --warn:#b26a00; --bad:#b3261e; --chip:#eef0ec;
+  --f-disp:"Barlow Condensed","Arial Narrow",sans-serif;
+  --f-body:"Source Sans 3",system-ui,sans-serif;
+  --f-num:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#151a1e; --panel:#1e252b; --fg:#e8ebe7; --muted:#9aa4ab; --line:#2f3840;
+  --accent:#f0bd1f; --accent-fg:#151a1e; --ink:#0f1316;
+  --ok:#5cc28a; --warn:#f0a43a; --bad:#ff7a70; --chip:#27303700; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151a1e; --panel:#1e252b; --fg:#e8ebe7; --muted:#9aa4ab; --line:#2f3840;
+  --accent:#f0bd1f; --accent-fg:#151a1e; --ink:#0f1316;
+  --ok:#5cc28a; --warn:#f0a43a; --bad:#ff7a70; --chip:#273037; color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--chip:#273037}}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:15px/1.45 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px}
+h1,h2,h3{font-family:var(--f-disp);letter-spacing:.01em;margin:0;text-wrap:balance}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header.top{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px}
+header.top h1{font-size:2rem}
+header.top p{margin:0;color:var(--muted)}
+.tabs{display:flex;gap:4px;background:var(--chip);padding:4px;border-radius:8px}
+.tabs button{border:0;background:transparent;color:var(--fg);font:600 14px var(--f-body);padding:8px 14px;border-radius:6px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-fg)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.note{font-size:13px;color:var(--muted)}
+/* Web */
+.web{display:grid;grid-template-columns:200px 1fr;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;min-height:560px}
+.side{background:var(--ink);color:#e8ebe7;padding:16px 10px;display:flex;flex-direction:column;gap:4px}
+.side .brand{font:700 1.3rem var(--f-disp);color:#f0bd1f;padding:0 8px 12px}
+.side button{all:unset;cursor:pointer;padding:8px 10px;border-radius:6px;font-size:14px}
+.side button[aria-current="true"]{background:#f0bd1f;color:#151a1e;font-weight:600}
+.side .who{margin-top:auto;font-size:12px;color:#9aa4ab;padding:8px}
+.main{padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{border:1px solid var(--line);border-radius:8px;padding:12px}
+.kpi b{display:block;font:500 1.6rem var(--f-num)}
+.kpi span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--chip)}
+td.n,th.n{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:600;border:1px solid currentColor}
+.ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)} .mut{color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--fg);font:600 14px var(--f-body);padding:8px 12px;border-radius:6px;cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.alerts{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.alerts li{display:flex;gap:10px;align-items:baseline;font-size:14px}
+input,select{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+input.q{width:80px;text-align:right;font-family:var(--f-num)}
+/* Móvil */
+.mob{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.phone{width:360px;max-width:100%;height:700px;border:10px solid var(--ink);border-radius:36px;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+.ph-top{background:var(--ink);color:#e8ebe7;padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
+.ph-top h3{font-size:1.25rem;color:#f0bd1f}
+.net{font-size:12px;padding:2px 8px;border-radius:99px;cursor:pointer;border:1px solid #9aa4ab;background:transparent;color:#e8ebe7}
+.net.off{border-color:#ff7a70;color:#ff7a70}
+.ph-body{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item b{font-family:var(--f-num);font-weight:500}
+.ph-nav{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);background:var(--panel)}
+.ph-nav button{all:unset;cursor:pointer;text-align:center;padding:10px 2px;font-size:12px;color:var(--muted)}
+.ph-nav button[aria-current="true"]{color:var(--fg);font-weight:600;box-shadow:inset 0 3px 0 var(--accent)}
+.seg{display:flex;gap:4px}
+.seg button{flex:1}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.side-notes{flex:1;min-width:260px;display:flex;flex-direction:column;gap:12px}
+.side-notes ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:#e8ebe7;padding:10px 16px;border-radius:8px;font-size:14px}
+@media (max-width:760px){
+  .web{grid-template-columns:1fr}
+  .side{flex-direction:row;flex-wrap:wrap}
+  .side .brand,.side .who{display:none}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Inventario Perros CI</h1>
+      <p>Maqueta navegable de la SPEC v1. Datos de ejemplo; lo que haga en una vista se refleja en la otra.</p>
+    </div>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="t-web" aria-selected="true">Web · Superadministrador</button>
+      <button role="tab" id="t-mob" aria-selected="false">Móvil · Operador de punto</button>
+    </div>
+  </header>
+
+  <section id="v-web">
+    <div class="web">
+      <nav class="side">
+        <div class="brand">CI · Perros</div>
+        <button data-w="tablero" aria-current="true">Tablero</button>
+        <button data-w="asignar">Asignaciones</button>
+        <button data-w="pedidos">Pedidos y reorden</button>
+        <button data-w="kardex">Kardex</button>
+        <div class="who">Superadministrador<br>admin@ejemplo.co</div>
+      </nav>
+      <div class="main" id="wmain"></div>
+    </div>
+  </section>
+
+  <section id="v-mob" hidden>
+    <div class="mob">
+      <div class="phone">
+        <div class="ph-top">
+          <h3>PV Chapinero</h3>
+          <button class="net" id="net" title="Simular conexión">En línea</button>
+        </div>
+        <div class="ph-body" id="pmain"></div>
+        <nav class="ph-nav">
+          <button data-m="saldo" aria-current="true">Mi saldo</button>
+          <button data-m="recibir">Recibir</button>
+          <button data-m="descargar">Descargar</button>
+          <button data-m="cola">Cola</button>
+        </nav>
+      </div>
+      <div class="side-notes card">
+        <h2>Pruebe este recorrido</h2>
+        <ol>
+          <li>Toque <b>En línea</b> para pasar a <b>Sin señal</b>.</li>
+          <li>En <b>Descargar</b>, registre dos ventas. Quedan en la <b>Cola</b> como pendientes.</li>
+          <li>En <b>Recibir</b>, confirme ASG-0142 con 48 salchichas en vez de 50.</li>
+          <li>Vuelva a <b>En línea</b> y sincronice. En la vista Web, el tablero muestra la diferencia y el kardex los movimientos.</li>
+        </ol>
+        <p class="note">Reglas de la SPEC visibles aquí: R1 kardex sin edición, R3 asignación en dos pasos, R6 saldo negativo en punto alertado, M5 cola sin conexión idempotente.</p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const INS={
+  PAN:{n:"Pan para perro",u:"und"}, SAM:{n:"Salchicha americana",u:"und"}, SRA:{n:"Salchicha ranchera",u:"und"},
+  PAP:{n:"Papa ripio",u:"g"}, QUE:{n:"Queso mozzarella rallado",u:"g"}, TOC:{n:"Tocineta picada",u:"g"},
+  SPI:{n:"Salsa de piña",u:"ml"}, SRO:{n:"Salsa rosada",u:"ml"}, MOS:{n:"Mostaza",u:"ml"}
+};
+const UB=["Bodega Central","PV Chapinero","PV Usaquén","PV Salitre"];
+const MIN={"Bodega Central":{PAN:200,SAM:150,SRA:80,PAP:5000,QUE:4000,TOC:2000,SPI:4000,SRO:4000,MOS:3000},
+           "PV":{PAN:40,SAM:30,SRA:15,PAP:1000,QUE:800,TOC:400,SPI:800,SRO:800,MOS:600}};
+const MAXPV={PAN:120,SAM:90,SRA:40,PAP:3000,QUE:2500,TOC:1200,SPI:2500,SRO:2500,MOS:1800};
+let S={
+  saldo:{
+    "Bodega Central":{PAN:150,SAM:420,SRA:60,PAP:18000,QUE:9500,TOC:3100,SPI:12000,SRO:11000,MOS:2400},
+    "PV Chapinero":{PAN:34,SAM:41,SRA:12,PAP:1450,QUE:900,TOC:520,SPI:1300,SRO:700,MOS:950},
+    "PV Usaquén":{PAN:88,SAM:70,SRA:25,PAP:2600,QUE:2100,TOC:900,SPI:2000,SRO:2100,MOS:1500},
+    "PV Salitre":{PAN:61,SAM:-3,SRA:20,PAP:2200,QUE:1600,TOC:700,SPI:1900,SRO:1700,MOS:1200}
+  },
+  asig:[
+    {id:"ASG-0142",dest:"PV Chapinero",estado:"DESPACHADA",lin:[{i:"PAN",env:80,rec:null,lote:"L-PAN-1009 · vence 2026-10-18"},{i:"SAM",env:50,rec:null,lote:"L-SAM-0930 · vence 2026-11-02"},{i:"SRO",env:1500,rec:null,lote:"L-SRO-0812 · vence 2027-01-15"}]},
+    {id:"ASG-0141",dest:"PV Usaquén",estado:"RECIBIDA",lin:[{i:"PAN",env:60,rec:60},{i:"SAM",env:60,rec:60}]}
+  ],
+  kardex:[
+    {t:"2026-10-14 06:10",u:"Bodega Central",i:"PAN",tipo:"TRASLADO_SALIDA",c:-80,ref:"ASG-0142",por:"admin"},
+    {t:"2026-10-14 06:10",u:"Bodega Central",i:"SAM",tipo:"TRASLADO_SALIDA",c:-50,ref:"ASG-0142",por:"admin"},
+    {t:"2026-10-14 06:10",u:"Bodega Central",i:"SRO",tipo:"TRASLADO_SALIDA",c:-1500,ref:"ASG-0142",por:"admin"},
+    {t:"2026-10-13 21:40",u:"PV Salitre",i:"SAM",tipo:"VENTA",c:-14,ref:"—",por:"oper.salitre"},
+    {t:"2026-10-13 16:05",u:"Bodega Central",i:"SAM",tipo:"ENTRADA_COMPRA",c:300,ref:"PED-0077",por:"admin"},
+    {t:"2026-10-13 11:20",u:"PV Usaquén",i:"PAN",tipo:"MERMA",c:-4,ref:"Pan aplastado",por:"oper.usaquen"}
+  ],
+  cola:[], online:true, w:"tablero", m:"saldo", tipoDesc:"VENTA"
+};
+const $=s=>document.querySelector(s);
+const fmt=n=>n.toLocaleString("es-CO");
+function now(){const d=new Date();return "2026-10-14 "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")}
+function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2600)}
+function min(u,i){return (u==="Bodega Central"?MIN[u]:MIN.PV)[i]}
+function estado(u,i){const v=S.saldo[u][i];if(v<0)return["Negativo","bad"];if(v<min(u,i))return["Bajo mínimo","warn"];return["OK","ok"]}
+
+/* ---------- Web ---------- */
+function alertas(){
+  const a=[];
+  for(const u of UB)for(const i in INS){const v=S.saldo[u][i];
+    if(v<0)a.push(["bad",`${u}: ${INS[i].n} en ${fmt(v)} ${INS[i].u}. Venta registrada sin saldo (R6), revisar.`]);
+    else if(v<min(u,i))a.push(["warn",`${u}: ${INS[i].n} ${fmt(v)} ${INS[i].u}, mínimo ${fmt(min(u,i))}.`]);}
+  for(const g of S.asig){if(g.estado==="RECIBIDA_CON_DIFERENCIA")g.lin.forEach(l=>{if(l.rec!==l.env)a.push(["bad",`${g.id} a ${g.dest}: ${INS[l.i].n} enviado ${fmt(l.env)}, recibido ${fmt(l.rec)}.`])});
+    if(g.estado==="DESPACHADA")a.push(["mut",`${g.id} en tránsito hacia ${g.dest}.`]);}
+  a.push(["warn","Lote L-PAN-1009 (Pan para perro) vence el 2026-10-18 (R10)."]);
+  return a;
+}
+function wTablero(){
+  const al=alertas(), tr=S.asig.filter(g=>g.estado==="DESPACHADA").length;
+  const bajo=al.filter(x=>x[0]==="warn").length, neg=al.filter(x=>x[0]==="bad").length;
+  let h=`<div class="row"><h2>Tablero</h2><span class="note">Saldo = suma del kardex (R1)</span></div>
+  <div class="kpis"><div class="kpi"><span>Puntos de venta</span><b>3</b></div><div class="kpi"><span>En tránsito</span><b>${tr}</b></div>
+  <div class="kpi"><span>Avisos</span><b class="warn">${bajo}</b></div><div class="kpi"><span>Requieren revisión</span><b class="bad">${neg}</b></div></div>
+  <div class="card"><h3>Alertas</h3><ul class="alerts">${al.map(x=>`<li><span class="pill ${x[0]}">${x[0]==="bad"?"Revisar":x[0]==="warn"?"Aviso":"Info"}</span>${x[1]}</li>`).join("")}</ul></div>
+  <div class="tbl"><table><thead><tr><th>Insumo</th><th>Unidad</th>${UB.map(u=>`<th class="n">${u}</th>`).join("")}</tr></thead><tbody>`;
+  for(const i in INS){h+=`<tr><td>${INS[i].n}</td><td class="mut">${INS[i].u}</td>${UB.map(u=>{const e=estado(u,i);return`<td class="n ${e[1]==="ok"?"":e[1]}">${fmt(S.saldo[u][i])}</td>`}).join("")}</tr>`}
+  return h+`</tbody></table></div>`;
+}
+function wAsignar(){
+  const dest=S.dest||"PV Chapinero";
+  let h=`<div class="row"><h2>Nueva asignación</h2><label>Destino <select id="dest">${UB.slice(1).map(u=>`<option ${u===dest?"selected":""}>${u}</option>`).join("")}</select></label></div>
+  <p class="note">Sugerido = máximo del punto − saldo del punto, limitado por la bodega (R8). Al despachar se proponen los lotes que vencen primero (R4).</p>
+  <div class="tbl"><table><thead><tr><th>Insumo</th><th class="n">Saldo punto</th><th class="n">Máximo</th><th class="n">Bodega</th><th class="n">Sugerido</th><th class="n">A enviar</th></tr></thead><tbody>`;
+  for(const i in INS){const sp=S.saldo[dest][i],b=S.saldo["Bodega Central"][i],sug=Math.max(0,Math.min(MAXPV[i]-sp,b));
+    h+=`<tr><td>${INS[i].n} <span class="mut">(${INS[i].u})</span></td><td class="n">${fmt(sp)}</td><td class="n">${fmt(MAXPV[i])}</td><td class="n">${fmt(b)}</td><td class="n">${fmt(sug)}</td><td class="n"><input class="q" id="a-${i}" value="${sug}" inputmode="numeric"></td></tr>`}
+  h+=`</tbody></table></div><div class="row"><span class="note" id="aerr"></span><button class="btn pri" id="desp">Despachar asignación</button></div>
+  <h3>Asignaciones</h3><div class="tbl"><table><thead><tr><th>Id</th><th>Destino</th><th>Estado</th><th>Líneas</th></tr></thead><tbody>
+  ${S.asig.map(g=>`<tr><td>${g.id}</td><td>${g.dest}</td><td><span class="pill ${g.estado==="RECIBIDA"?"ok":g.estado==="DESPACHADA"?"mut":"bad"}">${g.estado.replaceAll("_"," ").toLowerCase()}</span></td><td>${g.lin.map(l=>`${INS[l.i].n} ${fmt(l.env)}${l.rec!=null&&l.rec!==l.env?` → <b class="bad">${fmt(l.rec)}</b>`:""}`).join(" · ")}</td></tr>`).join("")}
+  </tbody></table></div>`;
+  return h;
+}
+function wPedidos(){
+  const b=S.saldo["Bodega Central"],MAXB={PAN:600,SAM:500,SRA:200,PAP:25000,QUE:15000,TOC:6000,SPI:15000,SRO:15000,MOS:8000};
+  const rows=Object.keys(INS).filter(i=>b[i]<MIN["Bodega Central"][i]);
+  return `<div class="row"><h2>Reorden</h2><span class="note">Entra si saldo bodega + pedidos enviados &lt; mínimo. Sugerido = máximo − (saldo + pendiente) (R7)</span></div>
+  <div class="tbl"><table><thead><tr><th>Insumo</th><th class="n">Saldo bodega</th><th class="n">Pendiente</th><th class="n">Mínimo</th><th class="n">Máximo</th><th class="n">Pedir</th><th>Proveedor</th></tr></thead><tbody>
+  ${rows.map(i=>`<tr><td>${INS[i].n}</td><td class="n warn">${fmt(b[i])}</td><td class="n">0</td><td class="n">${fmt(MIN["Bodega Central"][i])}</td><td class="n">${fmt(MAXB[i])}</td><td class="n"><b>${fmt(MAXB[i]-b[i])}</b> ${INS[i].u}</td><td>${i==="PAN"?"Panadería ejemplo S.A.S.":i==="MOS"?"Salsas ejemplo Ltda.":"Cárnicos ejemplo S.A.S."}</td></tr>`).join("")||`<tr><td colspan="7" class="mut">Ningún insumo bajo mínimo.</td></tr>`}
+  </tbody></table></div>
+  <div class="row"><span class="note">Generar el pedido desde aquí es P1 (W12).</span><button class="btn pri" id="mkped">Crear pedido en borrador</button></div>
+  <h3>Pedidos recientes</h3><div class="tbl"><table><thead><tr><th>Pedido</th><th>Proveedor</th><th>Estado</th><th class="n">Total</th></tr></thead><tbody>
+  <tr><td>PED-0077</td><td>Cárnicos ejemplo S.A.S.</td><td><span class="pill ok">recibido</span></td><td class="n">$ 690.000</td></tr>
+  <tr><td>PED-0076</td><td>Panadería ejemplo S.A.S.</td><td><span class="pill warn">recibido parcial</span></td><td class="n">$ 240.000</td></tr>
+  </tbody></table></div>`;
+}
+function wKardex(){
+  return `<div class="row"><h2>Kardex</h2><span class="note">Los movimientos no se editan ni se borran (R1); un error se corrige con un movimiento contrario.</span></div>
+  <div class="tbl"><table><thead><tr><th>Fecha</th><th>Ubicación</th><th>Insumo</th><th>Tipo</th><th class="n">Cantidad</th><th>Referencia</th><th>Usuario</th></tr></thead><tbody>
+  ${S.kardex.map(k=>`<tr><td class="mut">${k.t}</td><td>${k.u}</td><td>${INS[k.i].n}</td><td>${k.tipo}</td><td class="n ${k.c<0?"bad":"ok"}">${k.c>0?"+":""}${fmt(k.c)}</td><td>${k.ref}</td><td class="mut">${k.por}</td></tr>`).join("")}
+  </tbody></table></div><div class="row"><span></span><button class="btn">Exportar CSV</button></div>`;
+}
+function renderWeb(){
+  document.querySelectorAll(".side button").forEach(b=>b.setAttribute("aria-current",b.dataset.w===S.w));
+  $("#wmain").innerHTML={tablero:wTablero,asignar:wAsignar,pedidos:wPedidos,kardex:wKardex}[S.w]();
+  if(S.w==="asignar"){
+    $("#dest").onchange=e=>{S.dest=e.target.value;renderWeb()};
+    $("#desp").onclick=()=>{
+      const dest=S.dest||"PV Chapinero",lin=[];
+      for(const i in INS){const v=parseInt($("#a-"+i).value,10)||0;if(v<0)return;if(v>S.saldo["Bodega Central"][i]){$("#aerr").innerHTML=`<span class="bad">${INS[i].n}: hay ${fmt(S.saldo["Bodega Central"][i])} en bodega, no se puede despachar ${fmt(v)} (R5).</span>`;return}if(v>0)lin.push({i,env:v,rec:null})}
+      if(!lin.length){$("#aerr").textContent="Indique al menos una cantidad.";return}
+      const id="ASG-0"+(143+S.asig.length-2);
+      lin.forEach(l=>{S.saldo["Bodega Central"][l.i]-=l.env;S.kardex.unshift({t:now(),u:"Bodega Central",i:l.i,tipo:"TRASLADO_SALIDA",c:-l.env,ref:id,por:"admin"})});
+      S.asig.unshift({id,dest,estado:"DESPACHADA",lin});toast(`${id} despachada a ${dest}. Queda en tránsito hasta que el punto la reciba.`);renderAll();
+    };
+  }
+  if(S.w==="pedidos")$("#mkped").onclick=()=>toast("Pedido PED-0078 creado en borrador.");
+}
+
+/* ---------- Móvil ---------- */
+const PV="PV Chapinero";
+function saldoLocal(i){return S.saldo[PV][i]+S.cola.filter(c=>c.i===i&&c.estado==="pendiente").reduce((a,c)=>a+c.c,0)}
+function mSaldo(){
+  return `<div class="card"><div class="row"><b>Saldo actual</b><span class="note">${S.cola.some(c=>c.estado==="pendiente")?"Incluye pendientes sin enviar":"Sincronizado"}</span></div>
+  ${Object.keys(INS).map(i=>{const v=saldoLocal(i),e=v<0?"bad":v<MIN.PV[i]?"warn":"";return`<div class="item"><span>${INS[i].n}</span><b class="${e}">${fmt(v)} ${INS[i].u}</b></div>`}).join("")}</div>`;
+}
+function mRecibir(){
+  const p=S.asig.filter(g=>g.dest===PV&&g.estado==="DESPACHADA");
+  if(!p.length)return`<div class="card"><b>Sin asignaciones pendientes</b><p class="note">Cuando bodega despache, aparecerá aquí para confirmar lo recibido.</p></div>`;
+  return p.map(g=>`<div class="card"><div class="row"><b>${g.id}</b><span class="pill mut">en tránsito</span></div>
+  <p class="note">Cuente lo que llegó y corrija si no coincide.</p>
+  ${g.lin.map((l,k)=>`<div class="item"><span>${INS[l.i].n}<br><span class="note">Enviado ${fmt(l.env)} ${INS[l.i].u}${l.lote?" · "+l.lote:""}</span></span><input class="q" id="r-${g.id}-${k}" value="${l.env}" inputmode="numeric" aria-label="Recibido ${INS[l.i].n}"></div>`).join("")}
+  <button class="btn pri" style="width:100%;margin-top:8px" data-rec="${g.id}">Confirmar recepción</button></div>`).join("");
+}
+function mDescargar(){
+  const t=S.tipoDesc;
+  return `<div class="card"><b>Registrar descarga</b>
+  <div class="seg" style="margin:8px 0">${["VENTA","MERMA","DEVOLUCION"].map(x=>`<button class="btn" data-tipo="${x}" aria-pressed="${x===t}">${x==="DEVOLUCION"?"Devolución":x[0]+x.slice(1).toLowerCase()}</button>`).join("")}</div>
+  <label class="note" for="d-ins">Insumo</label><select id="d-ins" style="width:100%">${Object.keys(INS).map(i=>`<option value="${i}">${INS[i].n} (${INS[i].u})</option>`).join("")}</select>
+  <label class="note" for="d-cant" style="display:block;margin-top:8px">Cantidad</label><input id="d-cant" value="${t==="VENTA"?6:1}" inputmode="numeric" style="width:100%">
+  ${t!=="VENTA"?`<label class="note" for="d-mot" style="display:block;margin-top:8px">Motivo (obligatorio)</label><input id="d-mot" placeholder="Ej.: paquete roto" style="width:100%">`:""}
+  <p class="note" id="derr"></p><button class="btn pri" style="width:100%" id="dok">Registrar</button></div>
+  <p class="note">Con recetas (P1, M7) se registrará "2 perros especiales" y el sistema descontará pan, salchicha, salsas y papa.</p>`;
+}
+function mCola(){
+  const pend=S.cola.filter(c=>c.estado==="pendiente").length;
+  return `<div class="card"><div class="row"><b>Cola de sincronización</b><span class="pill ${pend?"warn":"ok"}">${pend} pendientes</span></div>
+  ${S.cola.length?S.cola.map(c=>`<div class="item"><span>${c.tipo.replace("_"," ").toLowerCase()} · ${INS[c.i].n}<br><span class="note">${c.id.slice(0,8)} · ${c.t}</span></span><span class="pill ${c.estado==="enviado"?"ok":"warn"}">${c.estado}</span></div>`).join(""):`<p class="note">No hay movimientos en la cola.</p>`}
+  <button class="btn pri" style="width:100%;margin-top:8px" id="sync" ${S.online?"":"disabled"}>${S.online?"Sincronizar ahora":"Sin señal: se enviará al reconectar"}</button></div>
+  <p class="note">Cada movimiento lleva un identificador único creado en el teléfono. Reenviar no duplica (E2E-4).</p>`;
+}
+function uuid(){return "xxxxxxxx-xxxx-4xxx".replace(/x/g,()=>(Math.random()*16|0).toString(16))}
+function sync(){
+  let n=0;S.cola.forEach(c=>{if(c.estado!=="pendiente")return;c.estado="enviado";n++;
+    if(c.tipo==="TRASLADO_ENTRADA"){}else{S.saldo[PV][c.i]+=c.c;S.kardex.unshift({t:c.t,u:PV,i:c.i,tipo:c.tipo,c:c.c,ref:c.mot||"—",por:"oper.chapinero"});}
+    if(c.apply)c.apply();});
+  if(n)toast(`${n} movimientos enviados.`);
+}
+function renderMob(){
+  document.querySelectorAll(".ph-nav button").forEach(b=>b.setAttribute("aria-current",b.dataset.m===S.m));
+  const net=$("#net");net.textContent=S.online?"En línea":"Sin señal";net.classList.toggle("off",!S.online);
+  $("#pmain").innerHTML={saldo:mSaldo,recibir:mRecibir,descargar:mDescargar,cola:mCola}[S.m]();
+  document.querySelectorAll("[data-tipo]").forEach(b=>b.onclick=()=>{S.tipoDesc=b.dataset.tipo;renderMob()});
+  if(S.m==="descargar")$("#dok").onclick=()=>{
+    const i=$("#d-ins").value,c=parseInt($("#d-cant").value,10),mot=$("#d-mot")?.value.trim();
+    if(!(c>0)){$("#derr").innerHTML='<span class="bad">La cantidad debe ser mayor que cero.</span>';return}
+    if(S.tipoDesc!=="VENTA"&&!mot){$("#derr").innerHTML='<span class="bad">Escriba el motivo de la merma o devolución.</span>';return}
+    const tipo=S.tipoDesc==="DEVOLUCION"?"DEVOLUCION_SALIDA":S.tipoDesc;
+    S.cola.unshift({id:uuid(),t:now(),i,c:-c,tipo,mot,estado:"pendiente"});
+    if(S.online)sync();else toast("Guardado en el teléfono. Se enviará al recuperar señal.");
+    renderAll();
+  };
+  document.querySelectorAll("[data-rec]").forEach(b=>b.onclick=()=>{
+    const g=S.asig.find(x=>x.id===b.dataset.rec);const rec=g.lin.map((l,k)=>Math.max(0,parseInt($(`#r-${g.id}-${k}`).value,10)||0));
+    const apply=()=>{g.lin.forEach((l,k)=>{l.rec=rec[k];S.saldo[PV][l.i]+=rec[k];S.kardex.unshift({t:now(),u:PV,i:l.i,tipo:"TRASLADO_ENTRADA",c:rec[k],ref:g.id,por:"oper.chapinero"})});
+      g.estado=g.lin.some(l=>l.rec!==l.env)?"RECIBIDA_CON_DIFERENCIA":"RECIBIDA";};
+    g.estado="RECIBIENDO";
+    S.cola.unshift({id:uuid(),t:now(),i:g.lin[0].i,c:0,tipo:"TRASLADO_ENTRADA",mot:g.id,estado:"pendiente",apply});
+    if(S.online)sync();else toast(`Recepción de ${g.id} guardada. Se confirmará al recuperar señal.`);
+    renderAll();
+  });
+  if(S.m==="cola"&&S.online)$("#sync").onclick=()=>{sync();renderAll()};
+}
+function renderAll(){renderWeb();renderMob()}
+
+document.querySelectorAll(".side button").forEach(b=>b.onclick=()=>{S.w=b.dataset.w;renderWeb()});
+document.querySelectorAll(".ph-nav button").forEach(b=>b.onclick=()=>{S.m=b.dataset.m;renderMob()});
+$("#net").onclick=()=>{S.online=!S.online;if(S.online){const p=S.cola.some(c=>c.estado==="pendiente");sync();if(!p)toast("Conexión recuperada.")}renderAll()};
+function tab(w){$("#t-web").setAttribute("aria-selected",w==="web");$("#t-mob").setAttribute("aria-selected",w!=="web");$("#v-web").hidden=w!=="web";$("#v-mob").hidden=w==="web"}
+$("#t-web").onclick=()=>tab("web");$("#t-mob").onclick=()=>tab("mob");
+if(location.hash==="#movil")tab("mob");
+renderAll();
+</script>
